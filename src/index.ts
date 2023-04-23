@@ -60,7 +60,9 @@ function generateNames(str: string) {
   // 4. 最后$
   result.push(strs.reduce((pre, cur, i) => `${pre.toLowerCase()}-${cur.toLowerCase()}${i === strs.length - 1 ? '$' : ''}`))
   // 5. _xx-
-  result.push(strs.reduce((pre, cur, i) => `${i === 0 ? '_' : ''}${pre.toLowerCase()}-${cur.toLowerCase()}`))
+  result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}-${cur.toLowerCase()}`))
+  // 6. _xx__
+  result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}__${cur.toLowerCase()}`))
 
   return result
 }

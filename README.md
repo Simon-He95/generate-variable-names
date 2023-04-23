@@ -3,6 +3,7 @@
 </p>
 <p align="center"> English | <a href="./README_zh.md">简体中文</a></p>
 
+Generate a variety of variable names, the function is similar to CodeIf, and implement a plug-in for direct operation in vscode
 
 ## :coffee:
 
