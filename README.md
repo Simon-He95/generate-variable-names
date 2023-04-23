@@ -5,6 +5,8 @@
 
 Generate a variety of variable names, the function is similar to CodeIf, and implement a plug-in for direct operation in vscode
 
+![gif](assets/demo.gif)
+
 ## :coffee:
 
 [buy me a cup of coffee](https://github.com/Simon-He95/sponsor)

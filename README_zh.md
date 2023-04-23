@@ -5,6 +5,9 @@
 
 生成多种变量名, 功能类似于CodeIf, 实现了一个在vscode中直接操作的插件
 
+![gif](assets/demo.gif)
+
+
 ## :coffee:
 
 [请我喝一杯咖啡](https://github.com/Simon-He95/sponsor)
