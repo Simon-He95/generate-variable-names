@@ -7,6 +7,18 @@ Generate a variety of variable names, the function is similar to CodeIf, and imp
 
 ![gif](assets/demo.gif)
 
+## login
+1. permanent login
+    ```
+    # in bashrc or zshrc
+    export GenerateNames_Secret=xxxx
+    export GenerateNames_Appid=xxxx
+    ```
+
+2. enter when vscode activates
+
+>[Apply for Baidu apk](http://api.fanyi.baidu.com/manage/developer)
+
 ## :coffee:
 
 [buy me a cup of coffee](https://github.com/Simon-He95/sponsor)

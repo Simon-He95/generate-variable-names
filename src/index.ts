@@ -4,9 +4,25 @@ import type { Options } from './type'
 
 const md5 = require('md5')
 
-export async function activate(context: vscode.ExtensionContext) {
-  const { GenerateNames_Secret, GenerateNames_Appid } = process.env
+let { GenerateNames_Secret, GenerateNames_Appid } = process.env
+
+export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('extension.replaceText', async () => {
+    if (!GenerateNames_Appid) {
+      GenerateNames_Appid = await vscode.window.showInputBox({
+        prompt: '百度appid',
+        ignoreFocusOut: true,
+        password: true,
+      })
+    }
+    if (!GenerateNames_Secret) {
+      GenerateNames_Secret = await vscode.window.showInputBox({
+        prompt: '百度Secret',
+        ignoreFocusOut: true,
+        password: true,
+      })
+    }
+
     const editor = vscode.window.activeTextEditor
     if (editor) {
       const selectedText = editor.document.getText(editor.selection)
@@ -40,8 +56,17 @@ async function getTranslate(text: string, options: Options = {}) {
     throw new Error('secret和appid不能为空，请申请百度翻译apk，http://api.fanyi.baidu.com/manage/developer')
 
   const sign = md5(appid + q + salt + secret)
-  const { data: { trans_result } } = await axios.get(`http://api.fanyi.baidu.com/api/trans/vip/translate?q=${text}&from=${from}&to=${to}&appid=${appid}&salt=${salt}&sign=${sign}`)
-  return trans_result[0].dst
+  try {
+    const { data: { error_code, error_msg, trans_result } } = await axios.get(`http://api.fanyi.baidu.com/api/trans/vip/translate?q=${text}&from=${from}&to=${to}&appid=${appid}&salt=${salt}&sign=${sign}`)
+    if (error_code)
+      throw error_msg
+    return trans_result[0].dst
+  }
+  catch (e: any) {
+    GenerateNames_Secret = GenerateNames_Appid = undefined
+    vscode.window.showWarningMessage(e)
+    throw e
+  }
 }
 
 function generateNames(str: string) {

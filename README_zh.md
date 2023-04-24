@@ -7,6 +7,18 @@
 
 ![gif](assets/demo.gif)
 
+## 登陆
+1. 永久登陆
+    ```
+    # in bashrc or zshrc
+    export GenerateNames_Secret=xxxx
+    export GenerateNames_Appid=xxxx
+    ```
+
+2. 每次vscode启动时输入
+
+
+>[申请百度apk](http://api.fanyi.baidu.com/manage/developer)
 
 ## :coffee:
 
