@@ -1,8 +1,5 @@
 import * as vscode from 'vscode'
-import axios from 'axios'
-import type { Options } from './type'
-
-const md5 = require('md5')
+import translate from '@simon_he/translate'
 
 let { GenerateNames_Secret, GenerateNames_Appid } = process.env
 
@@ -26,13 +23,13 @@ export function activate(context: vscode.ExtensionContext) {
     const editor = vscode.window.activeTextEditor
     if (editor) {
       const selectedText = editor.document.getText(editor.selection)
-      const options = generateNames(await getTranslate(selectedText, {
+      const options = generateNames(await translate(selectedText, {
         secret: GenerateNames_Secret,
         appid: GenerateNames_Appid,
         from: 'zh',
         to: 'en',
         salt: '1435660288',
-      }))
+      }) as string)
       const newText = await vscode.window.showQuickPick(options)
       if (newText)
         editor.edit(builder => builder.replace(editor.selection, newText))
@@ -49,32 +46,12 @@ export function deactivate() {
 
 }
 
-async function getTranslate(text: string, options: Options = {}) {
-  const q = text
-  const { from, to, salt, secret, appid } = options
-  if (!secret || !appid)
-    throw new Error('secret和appid不能为空，请申请百度翻译apk，http://api.fanyi.baidu.com/manage/developer')
-
-  const sign = md5(appid + q + salt + secret)
-  try {
-    const { data: { error_code, error_msg, trans_result } } = await axios.get(`http://api.fanyi.baidu.com/api/trans/vip/translate?q=${text}&from=${from}&to=${to}&appid=${appid}&salt=${salt}&sign=${sign}`)
-    if (error_code)
-      throw error_msg
-    return trans_result[0].dst
-  }
-  catch (e: any) {
-    GenerateNames_Secret = GenerateNames_Appid = undefined
-    vscode.window.showWarningMessage(e)
-    throw e
-  }
-}
-
 function generateNames(str: string) {
   const result = []
   const strs = str.split(' ')
   if (strs.length === 1) {
     const lowStr = str.toLowerCase()
-    return [lowStr, `_${lowStr}`, `_${lowStr}_`, `${lowStr}$`]
+    return [lowStr, `_${lowStr}`, `_${lowStr}_`, `${lowStr}$`, `str${lowStr[0].toUpperCase()}${lowStr.slice(1)}`, `int${lowStr[0].toUpperCase()}${lowStr.slice(1)}`]
   }
   // 1. _
   result.push(strs.reduce((pre, cur) => `${pre.toLowerCase()}_${cur.toLowerCase()}`))
@@ -88,6 +65,12 @@ function generateNames(str: string) {
   result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}-${cur.toLowerCase()}`))
   // 6. _xx__
   result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}__${cur.toLowerCase()}`))
+  // 7. 每个单词首字母都大写
+  result.push(strs.reduce((pre, cur) => `${pre[0].toUpperCase()}${pre.slice(1).toLowerCase()}${cur[0].toUpperCase()}${cur.slice(1).toLowerCase()}`))
+  // 8. str在变量名前加上数据类型或其他标识符的缩写
+  result.push(strs.reduce((pre, cur) => `str${pre[0].toUpperCase()}${pre.slice(1).toLowerCase()}${cur[0].toUpperCase()}${cur.slice(1).toLowerCase()}`))
+  // 9. str在变量名前加上数据类型或其他标识符的缩写
+  result.push(strs.reduce((pre, cur) => `int${pre[0].toUpperCase()}${pre.slice(1).toLowerCase()}${cur[0].toUpperCase()}${cur.slice(1).toLowerCase()}`))
 
   return result
 }
