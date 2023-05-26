@@ -10,6 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
         prompt: '百度appid',
         ignoreFocusOut: true,
         password: true,
+        placeHolder: '输入百度appid',
       })
     }
     if (!GenerateNames_Secret) {
@@ -17,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
         prompt: '百度Secret',
         ignoreFocusOut: true,
         password: true,
+        placeHolder: '输入百度Secret',
       })
     }
 
@@ -48,7 +50,10 @@ export function deactivate() {
 
 function generateNames(str: string) {
   const result = []
-  const strs = str.split(' ')
+
+  const strs = str
+    .replace(/[a-z]+([A-Z])/g, (all, v) => all.replace(v, ` ${v}`))
+    .split(' ')
   if (strs.length === 1) {
     const lowStr = str.toLowerCase()
     return [
