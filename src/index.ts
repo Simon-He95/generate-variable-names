@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import translate from '@simon_he/translate'
+import { message } from '@vscode-use/utils'
 
 let { GenerateNames_Secret, GenerateNames_Appid } = process.env
 
@@ -24,17 +25,22 @@ export function activate(context: vscode.ExtensionContext) {
 
     const editor = vscode.window.activeTextEditor
     if (editor) {
-      const selectedText = editor.document.getText(editor.selection)
-      const options = generateNames(await translate(selectedText, {
-        secret: GenerateNames_Secret,
-        appid: GenerateNames_Appid,
-        from: 'zh',
-        to: 'en',
-        salt: '1435660288',
-      }) as string)
-      const newText = await vscode.window.showQuickPick(options)
-      if (newText)
-        editor.edit(builder => builder.replace(editor.selection, newText))
+      try {
+        const selectedText = editor.document.getText(editor.selection)
+        const options = generateNames(await translate(selectedText, {
+          secret: GenerateNames_Secret,
+          appid: GenerateNames_Appid,
+          from: 'zh',
+          to: 'en',
+          salt: '1435660288',
+        }) as string)
+        const newText = await vscode.window.showQuickPick(options)
+        if (newText)
+          editor.edit(builder => builder.replace(editor.selection, newText))
+      }
+      catch (error: any) {
+        message.error(error.message)
+      }
     }
     else {
       vscode.window.showErrorMessage('No active text editor')
