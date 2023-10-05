@@ -5,6 +5,7 @@ import { message } from '@vscode-use/utils'
 let { GenerateNames_Secret, GenerateNames_Appid } = process.env
 
 export function activate(context: vscode.ExtensionContext) {
+  const cacheMap = new Map()
   const disposable = vscode.commands.registerCommand('extension.replaceText', async () => {
     if (!GenerateNames_Appid) {
       GenerateNames_Appid = await vscode.window.showInputBox({
@@ -27,13 +28,21 @@ export function activate(context: vscode.ExtensionContext) {
     if (editor) {
       try {
         const selectedText = editor.document.getText(editor.selection)
-        const options = generateNames(await translate(selectedText, {
-          secret: GenerateNames_Secret,
-          appid: GenerateNames_Appid,
-          from: 'zh',
-          to: 'en',
-          salt: '1435660288',
-        }) as string)
+        let options
+        if (cacheMap.has(selectedText)) {
+          options = cacheMap.get(selectedText)
+        }
+        else {
+          options = generateNames(await translate(selectedText, {
+            secret: GenerateNames_Secret,
+            appid: GenerateNames_Appid,
+            from: 'zh',
+            to: 'en',
+            salt: '1435660288',
+          }) as string)
+          cacheMap.set(selectedText, options)
+        }
+
         const newText = await vscode.window.showQuickPick(options)
         if (newText)
           editor.edit(builder => builder.replace(editor.selection, newText))
