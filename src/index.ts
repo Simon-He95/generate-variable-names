@@ -1,45 +1,39 @@
 import * as vscode from 'vscode'
-import translate from '@simon_he/translate'
-import { message } from '@vscode-use/utils'
+import translateLoader from '@simon_he/translate'
+import { createExtension, createInput, getActiveTextEditor, message, registerCommand } from '@vscode-use/utils'
 
-let { GenerateNames_Secret, GenerateNames_Appid } = process.env
+const cacheMap = new Map()
+export const { activate, deactivate } = createExtension(() => {
+  const translate = translateLoader(cacheMap)
 
-export function activate(context: vscode.ExtensionContext) {
-  const cacheMap = new Map()
-  const disposable = vscode.commands.registerCommand('extension.replaceText', async () => {
-    if (!GenerateNames_Appid) {
-      GenerateNames_Appid = await vscode.window.showInputBox({
-        prompt: '百度appid',
-        ignoreFocusOut: true,
-        password: true,
-        placeHolder: '输入百度appid',
-      })
-    }
-    if (!GenerateNames_Secret) {
-      GenerateNames_Secret = await vscode.window.showInputBox({
-        prompt: '百度Secret',
-        ignoreFocusOut: true,
-        password: true,
-        placeHolder: '输入百度Secret',
-      })
-    }
-
-    const editor = vscode.window.activeTextEditor
-    if (editor) {
+  return [
+    registerCommand('generate-variable-names.generateName', async () => {
+      const editor = getActiveTextEditor()
+      if (!editor)
+        return
       try {
-        const selectedText = editor.document.getText(editor.selection)
+        let selectedText = editor.document.getText(editor.selection)
+        if (!selectedText || !hasChineseCharacters(selectedText)) {
+          selectedText = await createInput({
+            value: '',
+            placeHolder: '输入要起的变量名的中文含义',
+            title: '根据输入的变量中文名提供不同规则的变量名',
+            validate(value) {
+              if (!hasChineseCharacters(value))
+                return Promise.resolve('必须使用中文')
+              if (!value)
+                return Promise.resolve('变量名不能为空')
+            },
+          }) || ''
+        }
+        if (!selectedText)
+          return
         let options
         if (cacheMap.has(selectedText)) {
           options = cacheMap.get(selectedText)
         }
         else {
-          options = generateNames(await translate(selectedText, {
-            secret: GenerateNames_Secret,
-            appid: GenerateNames_Appid,
-            from: 'zh',
-            to: 'en',
-            salt: '1435660288',
-          }) as string)
+          options = generateNames(await translate(selectedText) as string)
           cacheMap.set(selectedText, options)
         }
 
@@ -50,18 +44,11 @@ export function activate(context: vscode.ExtensionContext) {
       catch (error: any) {
         message.error(error.message)
       }
-    }
-    else {
-      vscode.window.showErrorMessage('No active text editor')
-    }
-  })
-
-  context.subscriptions.push(disposable)
-}
-
-export function deactivate() {
-
-}
+    }),
+  ]
+}, () => {
+  cacheMap.clear()
+})
 
 function generateNames(str: string) {
   const result = []
@@ -121,4 +108,9 @@ function generateNames(str: string) {
   result.push(strs.reduce((pre, cur) => `obj${pre[0].toUpperCase()}${pre.slice(1).toLowerCase()}${cur[0].toUpperCase()}${cur.slice(1).toLowerCase()}`))
 
   return result
+}
+
+export function hasChineseCharacters(str: string) {
+  const pattern = /[\u4E00-\u9FA5]/ // 匹配中文字符的正则表达式范围
+  return pattern.test(str)
 }

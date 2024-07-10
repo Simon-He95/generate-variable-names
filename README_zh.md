@@ -5,20 +5,10 @@
 
 生成多种变量名, 功能类似于CodeIf, 实现了一个在vscode中直接操作的插件
 
-![gif](assets/demo.gif)
+![demo](/assets/demo.gif)
 
-## 登陆
-1. 永久登陆
-    ```
-    # in bashrc or zshrc
-    export GenerateNames_Secret=xxxx
-    export GenerateNames_Appid=xxxx
-    ```
-
-2. 每次vscode启动时输入
-
-
->[申请百度apk](http://api.fanyi.baidu.com/manage/developer)
+## 使用
+通过快捷键 ***Mac***: `cmd` + `shift` + `r` | ***Windows***: `ctrl` + `shift` + `r` 启动命令，如果你选中了中文变量名则直接列出变量名列表，如果未选择，则需要再多一步输入中文含义的变量名，再列出结果
 
 ## :coffee:
 

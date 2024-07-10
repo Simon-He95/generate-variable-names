@@ -3,7 +3,7 @@
   "name": "generate-variable-names",
   "displayName": "Generate Variable Names",
   "version": "0.0.8",
-  "packageManager": "pnpm@8.1.1",
+  "packageManager": "pnpm@8.15.8",
   "description": "generate-variable-names",
   "author": "Simon He <https://github.com/Simon-He95>",
   "license": "MIT",
@@ -39,21 +39,27 @@
       "editor/context": [
         {
           "when": "editorHasSelection",
-          "command": "extension.replaceText",
+          "command": "generate-variable-names.generateName",
           "group": "6_px"
         }
       ]
     },
     "commands": [
       {
-        "command": "extension.replaceText",
+        "command": "generate-variable-names.generateName",
         "title": "generate variable names"
       }
     ],
     "keybindings": [
       {
-        "command": "extension.replaceText",
-        "key": "cmd+Alt+p"
+        "command": "generate-variable-names.generateName",
+        "key": "cmd+shift+r",
+        "when": "isMac"
+      },
+      {
+        "command": "generate-variable-names.generateName",
+        "key": "ctrl+shift+r",
+        "when": "!isMac"
       }
     ]
   },
@@ -65,27 +71,22 @@
     "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx,.md,.json --max-warnings 0 --cache",
     "lint:fix": "eslint . --ext .vue,.js,.ts,.jsx,.tsx,.md,.json --max-warnings 0 --cache --fix",
     "publish": "vsce publish --no-dependencies",
-    "typecheck": "tsc --noEmit",
     "release": "bumpp && pnpm run publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.38.4",
-    "@simon_he/translate": "^0.0.4",
-    "@types/node": "^18.15.11",
-    "@types/vscode": "^1.77.0",
-    "@vscode-use/utils": "^0.0.40",
-    "axios": "^1.3.6",
-    "bumpp": "^9.1.0",
-    "dotenv": "^16.0.3",
-    "eslint": "^8.37.0",
+    "@antfu/eslint-config": "^0.38.6",
+    "@simon_he/translate": "^0.0.5",
+    "@types/node": "^18.19.39",
+    "@types/vscode": "^1.91.0",
+    "@vscode-use/utils": "^0.1.6",
+    "axios": "^1.7.2",
+    "bumpp": "^9.4.1",
+    "eslint": "^8.57.0",
     "esno": "^0.16.3",
-    "md5": "^2.3.0",
-    "pnpm": "^8.1.1",
+    "pnpm": "^8.15.8",
     "rimraf": "^4.4.1",
     "translate-api": "^0.3.18",
     "tsup": "^6.7.0",
-    "typescript": "^5.0.3",
-    "vite": "^4.2.1",
     "vitest": "^0.29.8",
     "vsce": "^2.15.0"
   }
