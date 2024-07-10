@@ -2,7 +2,7 @@
   "publisher": "simonhe",
   "name": "generate-variable-names",
   "displayName": "Generate Variable Names",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "packageManager": "pnpm@8.15.8",
   "description": "generate-variable-names",
   "author": "Simon He <https://github.com/Simon-He95>",
