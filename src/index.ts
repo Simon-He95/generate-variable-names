@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import translateLoader from '@simon_he/translate'
-import { createExtension, createInput, getActiveTextEditor, message, registerCommand } from '@vscode-use/utils'
+import { createExtension, createInput, createProgress, getActiveTextEditor, message, registerCommand } from '@vscode-use/utils'
 
 const cacheMap = new Map()
 export const { activate, deactivate } = createExtension(() => {
@@ -11,6 +11,7 @@ export const { activate, deactivate } = createExtension(() => {
       const editor = getActiveTextEditor()
       if (!editor)
         return
+      let status: 'success' | 'failed' | 'pending' = 'pending'
       try {
         let selectedText = editor.document.getText(editor.selection)
         if (!selectedText || !hasChineseCharacters(selectedText)) {
@@ -28,6 +29,48 @@ export const { activate, deactivate } = createExtension(() => {
         }
         if (!selectedText)
           return
+
+        createProgress({
+          title: '正在生成变量名',
+          async done(report) {
+            await new Promise((_resolve) => {
+              let increment = 0
+              const timer = setInterval(() => {
+                if (increment < 99)
+                  increment++
+
+                if (status === 'success' || status === 'failed') {
+                  _resolve(true)
+                  clearInterval(timer)
+                  return
+                }
+                report({
+                  message: `Progress bar ${increment}% completed`,
+                  increment,
+                })
+              }, 10)
+            })
+            if (cacheMap.has(selectedText)) {
+              await new Promise((resolve) => {
+                setTimeout(() => {
+                  resolve(true)
+                }, 100)
+              })
+            }
+            if (status === 'success') {
+              report({
+                message: 'Progress bar 100% completed',
+                increment: 100,
+              })
+            }
+            else {
+              report({
+                message: '❌ Something Wrong',
+                increment: 100,
+              })
+            }
+          },
+        })
         let options
         if (cacheMap.has(selectedText)) {
           options = cacheMap.get(selectedText)
@@ -37,11 +80,13 @@ export const { activate, deactivate } = createExtension(() => {
           cacheMap.set(selectedText, options)
         }
 
+        status = 'success'
         const newText = await vscode.window.showQuickPick(options)
         if (newText)
           editor.edit(builder => builder.replace(editor.selection, newText))
       }
       catch (error: any) {
+        status = 'failed'
         message.error(error.message)
       }
     }),
