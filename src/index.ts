@@ -100,7 +100,7 @@ function generateNames(str: string) {
 
   const strs = str
     .replace(/[a-z]+([A-Z])/g, (all, v) => all.replace(v, ` ${v}`))
-    .split(' ')
+    .split(/[\s_-]/)
   if (strs.length === 1) {
     const lowStr = str.toLowerCase()
     return [...new Set([
