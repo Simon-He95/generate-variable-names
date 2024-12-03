@@ -24,10 +24,6 @@
   ],
   "main": "./dist/index.js",
   "icon": "assets/kv.png",
-  "files": [
-    "dist"
-  ],
-  "envFile": "${workspaceFolder}/.env",
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -79,6 +75,7 @@
     "@types/node": "^18.19.67",
     "@types/vscode": "1.77.0",
     "@vscode-use/utils": "^0.1.39",
+    "@vscode/vsce": "^3.2.1",
     "axios": "^1.7.8",
     "bumpp": "^9.8.1",
     "eslint": "^8.57.1",
@@ -87,7 +84,6 @@
     "rimraf": "^4.4.1",
     "translate-api": "^0.3.18",
     "tsup": "^6.7.0",
-    "vitest": "^0.29.8",
-    "vsce": "^2.15.0"
+    "vitest": "^0.29.8"
   }
 }
