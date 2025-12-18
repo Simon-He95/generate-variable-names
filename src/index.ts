@@ -3,9 +3,10 @@ import { createExtension, createInput, createProgress, getActiveTextEditor, mess
 import * as vscode from 'vscode'
 import { generateNames, hasChineseCharacters } from './utils'
 
-const cacheMap = new Map()
+const translateCache = new Map<string, unknown>()
+const nameCache = new Map<string, string[]>()
 export const { activate, deactivate } = createExtension(() => {
-  const translate = translateLoader(cacheMap)
+  const translate = translateLoader(translateCache as any)
 
   return [
     registerCommand('generate-variable-names.generateName', async () => {
@@ -21,13 +22,14 @@ export const { activate, deactivate } = createExtension(() => {
             placeHolder: '输入要起的变量名的中文含义',
             title: '根据输入的变量中文名提供不同规则的变量名',
             validate(value) {
-              if (!hasChineseCharacters(value))
-                return Promise.resolve('必须使用中文')
               if (!value)
                 return Promise.resolve('变量名不能为空')
+              if (!hasChineseCharacters(value))
+                return Promise.resolve('必须使用中文')
             },
           }) || ''
         }
+        selectedText = selectedText.trim()
         if (!selectedText)
           return
 
@@ -51,7 +53,7 @@ export const { activate, deactivate } = createExtension(() => {
                 })
               }, 10)
             })
-            if (cacheMap.has(selectedText)) {
+            if (nameCache.has(selectedText)) {
               await new Promise((resolve) => {
                 setTimeout(() => {
                   resolve(true)
@@ -72,13 +74,14 @@ export const { activate, deactivate } = createExtension(() => {
             }
           },
         })
-        let options
-        if (cacheMap.has(selectedText)) {
-          options = cacheMap.get(selectedText)
+        let options: string[]
+        if (nameCache.has(selectedText)) {
+          options = nameCache.get(selectedText)!
         }
         else {
-          options = generateNames((await translate(selectedText))[0])
-          cacheMap.set(selectedText, options)
+          const [translated = ''] = await translate(selectedText)
+          options = generateNames(translated)
+          nameCache.set(selectedText, options)
         }
 
         status = 'success'
@@ -93,5 +96,6 @@ export const { activate, deactivate } = createExtension(() => {
     }),
   ]
 }, () => {
-  cacheMap.clear()
+  translateCache.clear()
+  nameCache.clear()
 })

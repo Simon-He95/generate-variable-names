@@ -1,73 +1,122 @@
 export function generateNames(str: string) {
-  // 如果 str 中包含 the 或者 of 要把 the 去除,并且把 xx of yy 转换成 yyXX
-  str = str.replace(/[tT]he\s+/g, '')
-  if (/ of /.test(str)) {
-    const [first, ...rest] = str.split(' of ')
-    str = `${rest.join('')} ${first}`
-  }
-  const result = []
+  // 如果 str 中包含 the 或者 of 要把 the 去除,并且把 xx of yy 转换成 yy xx
+  str = normalizeInput(str)
+  const words = splitIntoWords(str)
+  if (words.length === 0)
+    return []
 
-  const strs = str
-    .replace(/[a-z]+([A-Z])/g, (all, v) => all.replace(v, ` ${v}`))
-    .split(/[\s_-]/)
-  if (strs.length === 1) {
-    const lowStr = str.toLowerCase()
-    return [...new Set([
-      lowStr,
-      `${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `_${lowStr}`,
-      `_${lowStr}_`,
-      `${lowStr}$`,
-      `str${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `num${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `bool${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `arr${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `obj${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `int${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `string${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `float${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-      `double${lowStr[0].toUpperCase()}${lowStr.slice(1)}`,
-    ])]
+  const results = createResultCollector()
+  const pascal = toPascalCase(words)
+
+  if (words.length === 1) {
+    const low = words[0].toLowerCase()
+    const cap = `${low[0].toUpperCase()}${low.slice(1)}`
+    results.add(low)
+    results.add(cap)
+    results.add(`_${low}`)
+    results.add(`_${low}_`)
+    results.add(`${low}$`)
+    results.add(`str${cap}`)
+    results.add(`num${cap}`)
+    results.add(`bool${cap}`)
+    results.add(`arr${cap}`)
+    results.add(`obj${cap}`)
+    results.add(`int${cap}`)
+    results.add(`string${cap}`)
+    results.add(`float${cap}`)
+    results.add(`double${cap}`)
+    return results.done()
   }
+
+  const lowerWords = words.map(w => w.toLowerCase())
+  const snake = lowerWords.join('_')
+  const kebab = lowerWords.join('-')
+  const camel = `${pascal[0].toLowerCase()}${pascal.slice(1)}`
+  const titleCase = lowerWords.map(w => `${w[0].toUpperCase()}${w.slice(1)}`).join('')
+
   // 1. _
-  result.push(strs.reduce((pre, cur) => `${pre.toLowerCase()}_${cur.toLowerCase()}`))
+  results.add(snake)
   // 2. -
-  result.push(strs.reduce((pre, cur) => `${pre.toLowerCase()}-${cur.toLowerCase()}`))
+  results.add(kebab)
   // 3. 小驼峰
-  result.push(strs.map((cur, i) => i === 0 ? `${cur[0].toLocaleLowerCase() + cur.slice(1)}` : `${cur[0].toUpperCase() + cur.slice(1)}`).join(''))
+  results.add(camel)
   // 4. 大驼峰
-  result.push(strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join(''))
+  results.add(pascal)
   // 5. 最后$
-  result.push(strs.reduce((pre, cur, i) => `${pre.toLowerCase()}-${cur.toLowerCase()}${i === strs.length - 1 ? '$' : ''}`))
+  results.add(`${kebab}$`)
   // 6. _xx-
-  result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}-${cur.toLowerCase()}`))
+  results.add(`_${kebab}`)
   // 7. _xx__
-  result.push(strs.reduce((pre, cur, i) => `${i === 1 ? '_' : ''}${pre.toLowerCase()}__${cur.toLowerCase()}`))
+  results.add(`_${lowerWords.join('__')}`)
   // 8. 每个单词首字母都大写
-  result.push(strs.reduce((pre, cur) => `${pre[0].toUpperCase()}${pre.slice(1).toLowerCase()}${cur[0].toUpperCase()}${cur.slice(1).toLowerCase()}`))
-  // 9. string在变量名前加上数据类型或其他标识符的缩写
-  result.push(`string${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 10. int在变量名前加上数据类型或其他标识符的缩写
-  result.push(`int${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 11. float在变量名前加上数据类型或其他标识符的缩写
-  result.push(`float${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 12. double在变量名前加上数据类型或其他标识符的缩写
-  result.push(`double${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 13. str在变量名前加上数据类型或其他标识符的缩写
-  result.push(`str${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 14. num在变量名前加上数据类型或其他标识符的缩写
-  result.push(`num${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 15. bool在变量名前加上数据类型或其他标识符的缩写
-  result.push(`bool${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 16. arr在变量名前加上数据类型或其他标识符的缩写
-  result.push(`arr${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
-  // 17. obj在变量名前加上数据类型或其他标识符的缩写
-  result.push(`obj${strs.map(cur => `${cur[0].toUpperCase() + cur.slice(1)}`).join('')}`)
+  results.add(titleCase)
+  // 9-17. 在变量名前加上数据类型或其他标识符的缩写
+  results.add(`string${pascal}`)
+  results.add(`int${pascal}`)
+  results.add(`float${pascal}`)
+  results.add(`double${pascal}`)
+  results.add(`str${pascal}`)
+  results.add(`num${pascal}`)
+  results.add(`bool${pascal}`)
+  results.add(`arr${pascal}`)
+  results.add(`obj${pascal}`)
 
-  return [...new Set(result)]
+  return results.done()
 }
 
+const hanRegex = /\p{Script=Han}/u
 export function hasChineseCharacters(str: string) {
-  const pattern = /[\u4E00-\u9FA5]/ // 匹配中文字符的正则表达式范围
-  return pattern.test(str)
+  return hanRegex.test(str)
+}
+
+function normalizeInput(input: string) {
+  let str = input.trim()
+  str = str.replace(/\bthe\s+/gi, '')
+
+  const parts = str.split(/\s+of\s+/i)
+  if (parts.length > 1) {
+    const [first, ...rest] = parts
+    str = `${rest.join(' ')} ${first}`.trim()
+  }
+
+  return str
+}
+
+function splitIntoWords(str: string) {
+  // camelCase / PascalCase / acronyms to spaced words
+  const withSpaces = str
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+
+  return withSpaces
+    .split(/[\s_-]+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+}
+
+function toPascalCase(words: string[]) {
+  return words
+    .map(word => word ? `${word[0].toUpperCase()}${word.slice(1)}` : '')
+    .join('')
+}
+
+function createResultCollector() {
+  const seen = new Set<string>()
+  const result: string[] = []
+
+  const add = (value: string) => {
+    if (!value)
+      return
+    if (seen.has(value))
+      return
+    seen.add(value)
+    result.push(value)
+  }
+
+  return {
+    add,
+    done() {
+      return result
+    },
+  } as const
 }
